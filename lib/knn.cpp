@@ -1,3 +1,7 @@
+// *************************************************************
+// TWO STRUCTS have been defined in the comments below, do look at them carefully!!!!!!
+// **************************************************************
+
 // // Define a point in N-dimensional space
 // struct Point {
 //     vector<double> coords;
