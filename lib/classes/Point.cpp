@@ -3,7 +3,7 @@
 
 #include <bits/stdc++.h>
 // #include "util/constants.cpp"
-#include "/home/aryan-bodhe/Desktop/VSCode/Projects/BallTrees/util/constants.cpp"
+#include "../../util/constants.cpp"
 using namespace std;
 
 class Point {

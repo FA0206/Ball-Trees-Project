@@ -41,9 +41,41 @@ def plot_3d_blobs(csv_file):
         plt.show()
     else:
         print("The CSV file does not contain 'X', 'Y', and 'Z' columns.")
-        
+
+def plot2DCircle(fname, scatterFileName):
+  data = pd.read_csv(fname)
+  data1 = pd.read_csv(scatterFileName)
+
+  figure, axes = plt.subplots()
+
+  for i in range (0, len(data), 1):
+    x1 = data['Center1'][i]
+    x2 = data['Center2'][i]
+    r = data['Radius'][i]
+
+    circle = plt.Circle((x1, x2), r, fill=False)
+
+    axes.add_artist(circle)
+  
+  if 'Feature1' in data1.columns and 'Feature2' in data1.columns:
+        plt.scatter(data1['Feature1'], data1['Feature2'], s=3)
+  else:
+        print("The CSV file is not two dimensional!")
+  
+  axes.set_aspect(1)
+  plt.xlim(-2, 3)
+  plt.ylim(-1.5, 1.75)
+  plt.title("Ball Trees Circles")
+  plt.show()
+
+
+
+plot2DCircle('testResults.csv', "Datasets/csv/2D_Moons.csv")
+
+'''   
 # Usage example:
 plot_3d_blobs('3D_S_Curve.csv')
 
 # Usage example:
 plot2DGraph('2D_Blobs.csv')
+'''

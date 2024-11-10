@@ -1,10 +1,10 @@
 #include <bits/stdc++.h>
-#include "/home/aryan-bodhe/Desktop/VSCode/Projects/BallTrees/lib/classes/Point.cpp"
+#include "../lib/classes/Point.cpp"
 using namespace std;
 
 /* Returns the Euclidean distance between two points. */
-float EuclideanDistance(const Point* A, const Point* B) {
-    float ed = 0.0f;
+double EuclideanDistance(const Point* A, const Point* B) {
+    double ed = 0.0f;
     for(int i = 0; i < DIMENSION; i++) {
         ed += pow(A->coordinate[i] - B->coordinate[i], 2);
     }
@@ -12,8 +12,8 @@ float EuclideanDistance(const Point* A, const Point* B) {
 }
 
 /* Returns the Manhattan distance between two points. */
-float ManhattanDistance(const Point* A, const Point* B) {
-    float md = 0.0f;
+double ManhattanDistance(const Point* A, const Point* B) {
+    double md = 0.0f;
     for(int i = 0; i < DIMENSION; i++) {
         md += abs(A->coordinate[i] - B->coordinate[i]);
     }
@@ -24,7 +24,7 @@ float ManhattanDistance(const Point* A, const Point* B) {
 Point* computeMean(const vector<Point*>& coordinateSet) {
     Point* mean = new Point();
     int pointCount = coordinateSet.size();
-    float sum;
+    double sum;
 
     for(int dim = 0; dim < DIMENSION; dim++) {
         sum = 0;
@@ -42,7 +42,7 @@ Point* computeMedian(const vector<Point*>& coordinateSet) {
     
     Point* median = new Point(); 
     int m = coordinateSet.size();
-    vector<float> temp(m);
+    vector<double> temp(m);
     
     for(int dim = 0; dim < DIMENSION; dim++) {
         for(int i = 0; i < m; i++) {
@@ -62,9 +62,9 @@ Point* computeMedian(const vector<Point*>& coordinateSet) {
 }
 
 /* Returns the farthest point from a given point in a set as pair (Point,Distance). */
-pair<Point*,float> findFarthestPoint(const vector<Point*> univSet, const Point* P) {
-    pair<Point*,float> result;
-    float m, maxDist = 0;
+pair<Point*,double> findFarthestPoint(const vector<Point*> univSet, const Point* P) {
+    pair<Point*,double> result;
+    double m, maxDist = 0;
     
     for(int i = 0; i < univSet.size(); i++) {
         m = max(maxDist, EuclideanDistance(P, univSet[i]));
@@ -90,7 +90,7 @@ vector<Point*> shiftOrigin(vector<Point*>& coordinateSet, const Point* pivot) {
 
 
 /* Returns the multiplication of two matrices. */
-vector<vector<float>> multiplyMatrices(const vector<vector<float>>& mat1, const vector<vector<float>>& mat2) {
+vector<vector<double>> multiplyMatrices(const vector<vector<double>>& mat1, const vector<vector<double>>& mat2) {
 
     int rows1 = mat1.size();
     int cols1 = mat1[0].size();
@@ -103,7 +103,7 @@ vector<vector<float>> multiplyMatrices(const vector<vector<float>>& mat1, const 
         // return NULL;
     }
 
-    vector<vector<float>> result(rows1, vector<float>(cols2, 0.0));
+    vector<vector<double>> result(rows1, vector<double>(cols2, 0.0));
 
     for (int i = 0; i < rows1; ++i) {
         for (int j = 0; j < cols2; ++j) {
@@ -117,8 +117,8 @@ vector<vector<float>> multiplyMatrices(const vector<vector<float>>& mat1, const 
 }
 
 /* Returns a matrix multiplied by specified scalar. */
-vector<vector<float>> multiplyMatrixWithScalar(vector<vector<float>> mat, float num) {
-    vector<vector<float>> result(mat);
+vector<vector<double>> multiplyMatrixWithScalar(vector<vector<double>> mat, double num) {
+    vector<vector<double>> result(mat);
     for(int i = 0; i < mat.size(); i++) {
         for(int j = 0; j < mat[0].size(); j++) {
             mat[i][j] *= num;
@@ -128,11 +128,11 @@ vector<vector<float>> multiplyMatrixWithScalar(vector<vector<float>> mat, float 
 }
 
 /* Returns the transpose of a given matrix. */
-vector<vector<float>> transposeMatrix(const vector<vector<float>>& mat) {
+vector<vector<double>> transposeMatrix(const vector<vector<double>>& mat) {
     
     int rows = mat.size();
     int cols = mat[0].size();
-    vector<vector<float>> transpose(cols, vector<float>(rows, 0.0));
+    vector<vector<double>> transpose(cols, vector<double>(rows, 0.0));
     
     for(int i = 0; i < rows; rows++) {
         for(int dim = 0; dim < DIMENSION; dim++) {
@@ -145,8 +145,8 @@ vector<vector<float>> transposeMatrix(const vector<vector<float>>& mat) {
 
 
 /* Returns the matrix representation of a dataset. */
-vector<vector<float>> createMatrix(const vector<Point*>& coordinateSet) {
-    vector<vector<float>> mat;
+vector<vector<double>> createMatrix(const vector<Point*>& coordinateSet) {
+    vector<vector<double>> mat;
 
     for(int i = 0; i < coordinateSet.size(); i++) {
         for(int dim = 0; dim < DIMENSION; dim++) {
@@ -159,7 +159,7 @@ vector<vector<float>> createMatrix(const vector<Point*>& coordinateSet) {
 
 
 /* Computes the covariance of a dataset in n-dimensional space. WARNING: This method may be incorrect. */
-vector<vector<float>> computeCovarianceMatrixOfNFeatures(vector<Point*> coordinateSet, const Point* mean) {
+vector<vector<double>> computeCovarianceMatrixOfNFeatures(vector<Point*> coordinateSet, const Point* mean) {
     if(DIMENSION == 1) {
         cout << "INVALID DIMENSION." << endl;
         return {{}};
@@ -169,22 +169,22 @@ vector<vector<float>> computeCovarianceMatrixOfNFeatures(vector<Point*> coordina
     coordinateSet = shiftOrigin(coordinateSet, computeMean(coordinateSet));
 
     // compute the covariance matrix using S = 1/n-1 . D^T.D, WARNING: FORMULA NOT VERIFIED.
-    vector<vector<float>> D = createMatrix(coordinateSet);
-    vector<vector<float>> DT = transposeMatrix(D);
+    vector<vector<double>> D = createMatrix(coordinateSet);
+    vector<vector<double>> DT = transposeMatrix(D);
 
-    vector<vector<float>> covarianceMatrix = multiplyMatrices(DT, D);
+    vector<vector<double>> covarianceMatrix = multiplyMatrices(DT, D);
     covarianceMatrix = multiplyMatrixWithScalar(covarianceMatrix, 1/DIMENSION-1);
 
     return covarianceMatrix;
 }
 
 
-// vector<vector<float>> computeCovarianceMatrix(vector<Point*> coordinateSet, const Point* mean) {
+// vector<vector<double>> computeCovarianceMatrix(vector<Point*> coordinateSet, const Point* mean) {
 
 // }
 
 // /* Returns the standard deviation of the given set of points. */
-// float computeStandardDeviation(vector<Point*> coordinateSet, const Point* mean) {
+// double computeStandardDeviation(vector<Point*> coordinateSet, const Point* mean) {
 
 
 // }
