@@ -11,3 +11,4 @@
 #define HIGHLEYMAN_DATASET "Datasets/csv/highleyman_data.csv"
 #define LITHUANIAN DATASET "Datasets/csv/lithuanian_data.csv"
 #define SOBOL_DATASET "Datasets/csv/sobol_data.csv"
+#define BALLS_DATA "lib/cache/ball_center_and_radius.csv"
