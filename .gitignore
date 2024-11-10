@@ -1,7 +1,7 @@
 .vscode/
+.DS_Store
 Trash/
 Resources/
+lib/PrincipalComponentAnalysis.cpp
 testbench.cpp
-testbench
-testResults.txt
-venv/
+__pycache__/
