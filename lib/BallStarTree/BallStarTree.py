@@ -10,6 +10,19 @@ class BallTreeNode:
         self.right = right       # Right child
         self.center = center     # Center of the ball
         self.radius = radius     # Radius of the ball
+    
+    def calculate_volume(self, current_dim):
+        """
+        Calculate the volume of the ball using recursive formula.
+        This is done in O(d) time complexity where d is the dimension of the ball.
+        """
+        if current_dim == 0:
+            return 1
+        elif current_dim == 1:
+            return 2 * self.radius
+        else:
+            return 2 * pi * (self.radius ** 2) * self.calculate_volume(current_dim - 2) / current_dim
+
 
 class BallStarTree:
     def __init__(self, data, leaf_size=10, max_iterations=100, alpha=0.5, S=10):
@@ -19,6 +32,7 @@ class BallStarTree:
         self.max_iterations = max_iterations  # Power iteration convergence
         self.alpha = alpha           # Weight for objective function
         self.S = S                   # Number of intervals for splitting
+        self.volume = 0              # To keep track of total volume of all balls
 
     def power_iteration(self, data):
         """
@@ -59,9 +73,10 @@ class BallStarTree:
         # Calculate center and radius for every node, including leaves
         node.center, node.radius = self._calculate_center_and_radius(data)
 
-        if len(data) <= self.leaf_size:
-            # Stop further splitting for leaf nodes
-            return
+        print("Node: \nPoints:", len(node.data))
+        print("Center and Radius: ", node.center, node.radius)
+        # Update the total volume of the tree
+        self.volume += node.calculate_volume(data.shape[1])
 
         # Calculate the principal component
         principal_component = self.power_iteration(data)
@@ -94,13 +109,16 @@ class BallStarTree:
         left_data = data[projections <= best_threshold]
         right_data = data[projections > best_threshold]
 
+        if len(left_data) < self.leaf_size or len(right_data) < self.leaf_size:
+            return
+
         # Create left and right child nodes
         node.left = BallTreeNode(data=left_data)
         node.right = BallTreeNode(data=right_data)
 
         # To control the depth of the tree (uncomment below lines)
         # count += 1
-        # if (count == 2):
+        # if (count == 5):
         #     return
 
         # Recursively split child nodes
@@ -173,12 +191,20 @@ class BallStarTree:
         Fit the Ball* Tree on the data.
         """
         self.root = BallTreeNode(data=self.data)
+        print("Building the Ball* Tree...")
+
+        # Double check if self.data.shape[1] works
         self._split_node(self.root)
-        # Once tree has been built, print the structure and plot it
-        self.print_tree(self.root)
-        # NOTE: This works only for 2D data. 
+
+        # Once tree has been built, print the structure and plot it (this works for any dimension)
+        # self.print_tree(self.root)
+
+        # NOTE: The below works only for 2D data. 
         # For higher dimensions, modify the plot function or comment out the code below
         self.plot()
+        
+        # Print the total volume of the tree
+        print(f"Total volume of the tree: {self.volume}")
 
 
 
