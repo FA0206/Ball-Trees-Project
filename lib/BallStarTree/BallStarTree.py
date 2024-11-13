@@ -33,35 +33,30 @@ class BallStarTree:
         self.alpha = alpha           # Weight for objective function
         self.S = S                   # Number of intervals for splitting
         self.volume = 0              # To keep track of total volume of all balls
+    
+    # Construction functions below:
 
-    def power_iteration(self, data):
+    def fit(self):
         """
-        This function performs the power iteration method to find the top principal component of the covariance matrix.
+        Fit the Ball* Tree on the data.
         """
-        centered_data = data - np.mean(data, axis=0) # axis=0 makes sure the mean is along columns
+        self.root = BallTreeNode(data=self.data)
+        print("Building the Ball* Tree...")
 
-        # Note: We're assume the data is normalized, i.e., zero mean and unit variance
-        # Fix this later by adding a normalization step
+        # Double check if self.data.shape[1] works
+        self._split_node(self.root)
+
+        # Print the total volume and average depth of the tree
+        print(f"Total volume of the tree: {self.volume}")
+        print("\nThe average depth of the tree is: ", self.avg_leaf_depth())
+    
+        # Once tree has been built, print the structure and plot it (this works for any dimension)
+        # self.print_tree(self.root)
+
+        # NOTE: The below works only for 2D data. 
+        # For higher dimensions, modify the plot function or comment out the code below
+        self.plot()
         
-        # Step 1: Compute covariance matrix
-        covariance_matrix = np.cov(centered_data, rowvar=False)
-
-        # Step 2: Power iteration on the covariance matrix to find the top principal component
-        b_k = np.random.rand(covariance_matrix.shape[1])
-        for _ in range(self.max_iterations):
-            b_k1 = np.dot(covariance_matrix, b_k)
-            b_k = b_k1 / np.linalg.norm(b_k1)
-        
-        return b_k
-
-    def _calculate_center_and_radius(self, data):
-        """
-        Calculates the center and radius for a given set of points.
-        """
-        center = np.mean(data, axis=0) 
-        radius = np.max(np.linalg.norm(data - center, axis=1))  # axis=1 calculates norm per row
-        return center, radius
-
     def _split_node(self, node, count = 0):
         """
         Recursively split the node into two children nodes. 
@@ -125,6 +120,36 @@ class BallStarTree:
         self._split_node(node.left, count)
         self._split_node(node.right, count)
 
+    def power_iteration(self, data):
+        """
+        This function performs the power iteration method to find the top principal component of the covariance matrix.
+        """
+        centered_data = data - np.mean(data, axis=0) # axis=0 makes sure the mean is along columns
+
+        # Note: We're assume the data is normalized, i.e., zero mean and unit variance
+        # Fix this later by adding a normalization step
+        
+        # Step 1: Compute covariance matrix
+        covariance_matrix = np.cov(centered_data, rowvar=False)
+
+        # Step 2: Power iteration on the covariance matrix to find the top principal component
+        b_k = np.random.rand(covariance_matrix.shape[1])
+        for _ in range(self.max_iterations):
+            b_k1 = np.dot(covariance_matrix, b_k)
+            b_k = b_k1 / np.linalg.norm(b_k1)
+        
+        return b_k
+
+    def _calculate_center_and_radius(self, data):
+        """
+        Calculates the center and radius for a given set of points.
+        """
+        center = np.mean(data, axis=0) 
+        radius = np.max(np.linalg.norm(data - center, axis=1))  # axis=1 calculates norm per row
+        return center, radius
+
+    # Plotting and printing functions below:
+
     def _plot_tree(self, node, ax):
         # Plot the circle for the current node
         if node is None:
@@ -186,25 +211,27 @@ class BallStarTree:
             print(f"{indent}Right:")
             self.print_tree(node.right, depth + 1)
 
-    def fit(self):
+    # Query functions below:
+
+    # Analysis functions below:
+
+    def avg_leaf_depth(self):
         """
-        Fit the Ball* Tree on the data.
+        Calculate the average depth of the leaves in the Ball* Tree.
         """
-        self.root = BallTreeNode(data=self.data)
-        print("Building the Ball* Tree...")
+        sum_depth = 0
+        num_leaves = 0
 
-        # Double check if self.data.shape[1] works
-        self._split_node(self.root)
+        # Perform a DFS traversal to calculate the sum of depths and number of leaves
+        stack = [(self.root, 0)]
+        while stack:
+            node, depth = stack.pop()
+            if node.left is None and node.right is None:
+                sum_depth += depth
+                num_leaves += 1
+            if node.left is not None:
+                stack.append((node.left, depth + 1))
+            if node.right is not None:
+                stack.append((node.right, depth + 1))
 
-        # Once tree has been built, print the structure and plot it (this works for any dimension)
-        # self.print_tree(self.root)
-
-        # NOTE: The below works only for 2D data. 
-        # For higher dimensions, modify the plot function or comment out the code below
-        self.plot()
-        
-        # Print the total volume of the tree
-        print(f"Total volume of the tree: {self.volume}")
-
-
-
+        return sum_depth / num_leaves

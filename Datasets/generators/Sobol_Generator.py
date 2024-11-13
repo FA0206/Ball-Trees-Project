@@ -1,21 +1,21 @@
 import numpy as np
 from scipy.stats import qmc
 
-def generate_sobol_samples(n):
-    # Create a Sobol sequence sampler for 2D
-    sampler = qmc.Sobol(d=2, scramble=True)
+def generate_sobol_samples(n, k):
+    # Create a Sobol sequence sampler for k dimensions
+    sampler = qmc.Sobol(d=k, scramble=True)
     points = sampler.random(n)  # Generate n samples
     return points
 
-# Set the number of samples
-n_samples = 500000
+# Set the number of samples and the dimensionality
+n_samples = 4096
+k_dimensions = 2 
 
 # Generate Sobol samples
-data = generate_sobol_samples(n_samples)
+data = generate_sobol_samples(n_samples, k_dimensions)
 
 # Save to CSV file, one data point per line
-with open('sobol_data.csv', 'w') as f:
-    for sample in data:
-        f.write(f"{sample[0]},{sample[1]}\n")
+filename = f'sobol_data_{k_dimensions}d.csv'
+np.savetxt(filename, data, delimiter=",")
 
-print("CSV file 'sobol_data.csv' created with 500,000 samples.")
+print(f"CSV file '{filename}' created with {n_samples} samples in {k_dimensions} dimensions.")

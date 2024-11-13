@@ -13,14 +13,14 @@ def highleyman_samples(n):
     return np.column_stack((x, y))
 
 # Set the number of samples
-n_samples = 500000
+n_samples = 5000
 
 # Generate Highleyman samples
 data = highleyman_samples(n_samples)
 
 # Save to CSV file, one data point per line
-with open('highleyman_data.csv', 'w') as f:
+with open('../csv/highleyman_data.csv', 'w') as f:
     for sample in data:
         f.write(f"{sample[0]},{sample[1]}\n")
 
-print("CSV file 'highleyman_data.csv' created with 500,000 samples.")
+print("CSV file 'highleyman_data.csv' created with 50,000 samples.")
