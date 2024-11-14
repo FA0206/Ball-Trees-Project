@@ -2,6 +2,7 @@ import numpy as np
 from math import *
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
+import matplotlib.cm as cm
 
 class BallTreeNode:
     def __init__(self, data=None, left=None, right=None, center=None, radius=None):
@@ -25,7 +26,7 @@ class BallTreeNode:
 
 
 class BallStarTree:
-    def __init__(self, data, leaf_size=10, max_iterations=100, alpha=0.5, S=10):
+    def __init__(self, data, has_classification, leaf_size=10, max_iterations=100, alpha=0.5, S=10):
         self.root = None             # Root node of the tree
         self.data = data             # Initial dataset (n-dimensional points)
         self.leaf_size = leaf_size   # Threshold for leaf size
@@ -33,6 +34,7 @@ class BallStarTree:
         self.alpha = alpha           # Weight for objective function
         self.S = S                   # Number of intervals for splitting
         self.volume = 0              # To keep track of total volume of all balls
+        self.has_classification = has_classification
     
     # Construction functions below:
 
@@ -54,7 +56,7 @@ class BallStarTree:
         # self.print_tree(self.root)
 
         # NOTE: The below works only for 2D data. 
-        # For higher dimensions, modify the plot function or comment out the code below
+        # For higher dimensions, modify the plot function
         self.plot()
         
     def _split_node(self, node, count = 0):
@@ -64,7 +66,11 @@ class BallStarTree:
         The center and radius of the ball are calculated for each node (including leaves).
         The optimal split threshold is found using an objective function that balances the size of the two children nodes.
         """
-        data = node.data
+        if (self.has_classification):
+            full_data = node.data
+            data = full_data[:, :-1]
+        else:
+            data = node.data
         # Calculate center and radius for every node, including leaves
         node.center, node.radius = self._calculate_center_and_radius(data)
 
@@ -101,8 +107,12 @@ class BallStarTree:
                 optimal_N1, optimal_N2 = N1, N2
 
         # Split the data based on the best threshold
-        left_data = data[projections <= best_threshold]
-        right_data = data[projections > best_threshold]
+        if (self.has_classification):
+            left_data = full_data[projections <= best_threshold]
+            right_data = full_data[projections > best_threshold]
+        else:
+            left_data = data[projections <= best_threshold]
+            right_data = data[projections > best_threshold]
 
         if len(left_data) < self.leaf_size or len(right_data) < self.leaf_size:
             return
@@ -150,47 +160,69 @@ class BallStarTree:
 
     # Plotting and printing functions below:
 
-    def _plot_tree(self, node, ax):
+    def _plot_tree(self, node, ax, level=0, max_levels = 10):
         # Plot the circle for the current node
         if node is None:
             return
 
+        # Define a colormap (e.g., 'viridis' or 'tab10') to vary colors by level
+        cmap = cm.get_cmap('tab10', max_levels)  # Set max_levels based on expected tree depth
+
         # Draw the node's circle if it has a radius and center defined
         if node.radius is not None and node.center is not None:
-            circle = Circle(node.center, node.radius, color='blue', fill=False, linestyle='--', linewidth=1)
+            color = cmap(level % max_levels)  # Map the level to a color in the colormap
+            circle = Circle(node.center, node.radius, color=color, fill=False, linestyle='-', linewidth=1)
             ax.add_patch(circle)
             # ax.plot(node.center[0], node.center[1], 'ro')  # Mark the center of the circle
 
+
         # Recursively plot left and right children
         if node.left is not None:
-            self._plot_tree(node.left, ax)
+            self._plot_tree(node.left, ax, level + 1, max_levels)
         if node.right is not None:
-            self._plot_tree(node.right, ax)
+            self._plot_tree(node.right, ax, level + 1, max_levels)
 
     def plot(self):
         # Check if the data is 2D
-        if self.data.shape[1] != 2:
+        if self.data.shape[1] > 2:
             print("Plotting is supported only for 2D data.")
             return
-
-        # Create a plot
+        
         fig, ax = plt.subplots(figsize=(8, 8))
 
-        # Plot data points
-        ax.scatter(self.data[:, 0], self.data[:, 1], s=10, color='black', label='Data Points')
-
+        if self.has_classification:
+            # Separate data and labels
+            data, labels = self.data[:, :-1], self.data[:, -1]
+            unique_classes = np.unique(labels)
+            
+            # Limit the number of unique classes to 20
+            if len(unique_classes) > 20:
+                print("Too many unique classes to plot distinct colors (limit 20).")
+                return
+            
+            # Use colormap 'tab20' or 'tab20b' for up to 20 distinct colors
+            cmap = cm.get_cmap('tab20', len(unique_classes))
+            colors = {cls: cmap(i) for i, cls in enumerate(unique_classes)}
+            
+            # Plot points with colors based on classification
+            for cls in unique_classes:
+                class_points = data[labels == cls]
+                ax.scatter(class_points[:, 0], class_points[:, 1], s=10, color=colors[cls], label=f'Class {int(cls)}')
+        else:
+            # Plot all points in black if there is no classification
+            ax.scatter(self.data[:, 0], self.data[:, 1], s=10, color='black', label='Data Points')
+        
         # Plot the tree recursively
         self._plot_tree(self.root, ax)
 
-        # Set plot limits
-        # ax.set_xlim(self.data[:, 0].min() - 1, self.data[:, 0].max() + 1)
-        # ax.set_ylim(self.data[:, 1].min() - 1, self.data[:, 1].max() + 1)
+        # Set plot details
         ax.set_aspect('equal', 'box')
         plt.xlabel("Feature 1")
         plt.ylabel("Feature 2")
         plt.title("Ball* Tree Visualization")
         plt.legend()
         plt.show()
+
 
     def print_tree(self, node=None, depth=0):
         """
