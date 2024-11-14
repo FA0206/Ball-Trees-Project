@@ -6,7 +6,7 @@ from BallStarTree import BallStarTree
 
 # Define the relative path to the dataset
 file_dir = os.path.dirname(__file__)  # Directory of the current Python file
-csv_path = os.path.join(file_dir, '..', '..', 'Datasets', 'csv', 'banknote_test.csv')  # Go up and locate Datasets
+csv_path = os.path.join(file_dir, '..', '..', 'Datasets', 'csv', '2D_Moons.csv')  # Go up and locate Datasets
 
 # Load the dataset with headers (the Moons and Blobs and Swiss Roll datasets have headers)
 df = pd.read_csv(csv_path)

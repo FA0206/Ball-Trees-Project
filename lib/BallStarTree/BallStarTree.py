@@ -184,7 +184,7 @@ class BallStarTree:
 
     def plot(self):
         # Check if the data is 2D
-        if self.data.shape[1] > 2:
+        if (self.data.shape[1] > 2 and not self.has_classification) or (self.data.shape[1] > 3 and self.has_classification):
             print("Plotting is supported only for 2D data.")
             return
         
