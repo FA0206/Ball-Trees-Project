@@ -1,3 +1,6 @@
+#ifndef maFx
+#define maFx
+
 #include <bits/stdc++.h>
 #include "../lib/classes/Point.cpp"
 using namespace std;
@@ -211,3 +214,4 @@ void computeBallVolumesAndSaveToFile(FILE* &fptr, BallTreeNode* &root) {
 
 
 // }
+#endif
