@@ -179,6 +179,29 @@ vector<vector<double>> computeCovarianceMatrixOfNFeatures(vector<Point*> coordin
 }
 
 
+double computeHypersphereVolume(double radius, int n) {
+    if(n == 0) {
+        return 1.0;
+    }
+    if(n == 1) {
+        return 2.0 * radius;
+    }
+
+    return 2.0 * 3.1415 * radius*radius * computeHypersphereVolume(radius, n-2) / n;
+}
+
+void computeBallVolumesAndSaveToFile(FILE* &fptr, BallTreeNode* &root) {
+    if(root->left == NULL && root->right == NULL) {
+        return;
+    }
+
+    fprintf(fptr, "%lf\n", computeHypersphereVolume(root->ball->radius, DIMENSION));
+    computeBallVolumesAndSaveToFile(fptr, root->left);
+    computeBallVolumesAndSaveToFile(fptr, root->right);
+}
+
+
+
 // vector<vector<double>> computeCovarianceMatrix(vector<Point*> coordinateSet, const Point* mean) {
 
 // }
