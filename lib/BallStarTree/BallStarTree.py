@@ -179,7 +179,7 @@ class BallStarTree:
         if node.right is not None:
             self._plot_tree(node.right, ax, level + 1, max_levels)
 
-    def plot(self, query_point = None, queried_points = None):
+    def plot(self, query_point = None, knn_queried_points = None, range_queried_points = None, radius = None):
         # Check if the data is 2D
         if (self.data.shape[1] > 2 and not self.has_classification) or (self.data.shape[1] > 3 and self.has_classification):
             print("Plotting is supported only for 2D data.")
@@ -209,11 +209,23 @@ class BallStarTree:
             # Plot all points in black if there is no classification
             ax.scatter(self.data[:, 0], self.data[:, 1], s=10, color='black', label='Data Points')
         
-        if queried_points is not None:
+        if knn_queried_points is not None:
             # Plot queried points in red
-            queried_points = np.array(queried_points)
-            ax.scatter(queried_points[:, 0], queried_points[:, 1], s=10, color='red', label='Queried Points')
+            knn_queried_points = np.array(knn_queried_points)
+            ax.scatter(knn_queried_points[:, 0], knn_queried_points[:, 1], s=30, color='red', label='Queried Points')
         
+        if range_queried_points is not None and radius is not None:
+            # Plot range circle in thick border and black as well as mention it in the legend
+            circle = Circle(query_point, radius, color='black', fill=False, linestyle='-', linewidth=2)
+            ax.add_patch(circle)
+
+            if (range_queried_points == []):
+                print("No elements found in the range query.")
+            else:
+                # Plot range queried points in beige
+                range_queried_points = np.array(range_queried_points)
+                ax.scatter(range_queried_points[:, 0], range_queried_points[:, 1], s=30, color='Orange', label='Range Queried Points')
+
         if query_point is not None:
             # Plot the query point in green
             ax.scatter(query_point[0], query_point[1], s=50, color='purple', label='Query Point')
@@ -321,6 +333,48 @@ class BallStarTree:
 
         # Return sorted list of nearest neighbors by distance
         return knn_heap
+
+    def range_query(self, query_point, range):
+        """
+        Query the Ball* Tree to find all points within a given range of a query point.
+        Performs backtracking to explore other subtrees if there's a chance of finding points within the range.
+        """
+        points_in_range = []
+        def search_node(node):
+            if node is None:
+                return
+            distance_to_center = np.linalg.norm(query_point - node.center)
+
+            if (distance_to_center - node.radius > range):
+                if (node.left is None and node.right is None):
+                    print("Skipping the leaf of size ", len(node.data))
+                else:
+                    print("Skipping the node of size ", len(node.data))
+                return
+            
+            if (node.left is None and node.right is None):
+                for point in node.data:
+                    if (not self.has_classification):
+                        dist = np.linalg.norm(query_point - point)
+                    else:
+                        dist = np.linalg.norm(query_point - point[:-1])
+
+                    if dist <= range:
+                        points_in_range.append(point)
+                return
+
+            if (np.linalg.norm(query_point - node.left.center) <= np.linalg.norm(query_point - node.right.center)):
+                search_node(node.left)
+                search_node(node.right)
+            else:
+                search_node(node.right)
+                search_node(node.left)
+
+        print("Starting the range query...")
+        search_node(self.root)
+        print("Range query completed.")
+
+        return points_in_range
 
     # Analysis functions below:
 
