@@ -66,9 +66,14 @@
     BallTree* constructBallTreeUsingMedianSplit(BallTree* &ballTree, vector<Point*>& completePointSet) {
         ballTree = new BallTree();
         ballTree->root = new BallTreeNode(completePointSet);
+        Point* root_center = computeMedian(completePointSet);
+        ballTree->root->ball->center = root_center;
+        double r = findFarthestPoint(completePointSet, root_center).second;
+        ballTree->root->ball->radius = r;
         
         // open the cache file to store data
         FILE* fp = fopen("lib/cache/ball_center_and_radius.txt", "w");
+        
 
         // rename to csv :)
         system("mv lib/cache/ball_center_and_radius.txt lib/cache/ball_center_and_radius.csv");
@@ -76,7 +81,12 @@
             fprintf(fp, "Center%d,", i+1);
         }
         fprintf(fp, "Radius\n");
+        for(int i = 0; i < DIMENSION; i++) {
+            fprintf(fp, "%lf,", root_center->coordinate[i]);
+        }
+        fprintf(fp, "%lf", r);
         fclose(fp);
+        delete root_center;
 
         // call the median split algorithm
         medianSplitAlgorithm(ballTree->root, completePointSet);

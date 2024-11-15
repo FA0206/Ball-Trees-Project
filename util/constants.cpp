@@ -1,5 +1,5 @@
 #define DIMENSION 2
-#define LEAF_POINT_COUNT_THRESHOLD 5
+#define LEAF_POINT_COUNT_THRESHOLD 3
 #define BLOBS_2D "Datasets/csv/2D_Blobs.csv"
 #define MOONS_2D "Datasets/csv/2D_Moons.csv"
 #define BLOBS_3D "Datasets/csv/3D_Blobs.csv"
@@ -12,3 +12,4 @@
 #define LITHUANIAN DATASET "Datasets/csv/lithuanian_data.csv"
 #define SOBOL_DATASET "Datasets/csv/sobol_data.csv"
 #define BALLS_DATA "lib/cache/ball_center_and_radius.csv"
+#define TEST_DATA "Datasets/csv/test.csv"
