@@ -9,7 +9,7 @@ class BallTree {
 public:
     BallTreeNode* root;
     int maxDepth;
-    float averageDepth;
+    double averageDepth;
 
     BallTree() {
         root = NULL;

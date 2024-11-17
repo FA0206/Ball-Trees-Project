@@ -3,16 +3,17 @@
 
 #include <bits/stdc++.h>
 // #include "util/constants.cpp"
-#include "../../util/constants.cpp"
+#include "../../constants.cpp"
 using namespace std;
 
 class Point {
     // create an n-dimensional point in space
 public:
-    vector<float> coordinate;
+    vector<double> coordinate;
 
     Point() {
-        coordinate.resize(DIMENSION);
+        /* Plus one to accomodate for the target value. */
+        coordinate.resize(DIMENSION+1);
     }
 
     bool operator<(const Point& other) const {

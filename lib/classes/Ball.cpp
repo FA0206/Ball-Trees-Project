@@ -8,18 +8,16 @@ using namespace std;
 class Ball {
 public:
     vector<Point*> containedPoints;
-    float radius;
+    double radius;
     Point* center;
 
-    Ball() {
-        // is this rlly necessary??
-    }
+    Ball() {}
 
     Ball(vector<Point*> pointSet) {
         containedPoints = pointSet;
     }
 
-    Ball(Point* center, float radius) {
+    Ball(Point* center, double radius) {
         this->center = center;
         this->radius = radius;
     }

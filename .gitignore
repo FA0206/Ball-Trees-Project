@@ -1,10 +1,4 @@
 .vscode/
 .DS_Store
-Trash/
-Resources/
-lib/PrincipalComponentAnalysis.cpp
-testbench.cpp
-testbench
+testbench.exe
 __pycache__/
-Datasets/csv/
-Python/

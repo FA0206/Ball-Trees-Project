@@ -70,7 +70,7 @@ pair<Point*,double> findFarthestPoint(const vector<Point*> univSet, const Point*
     double m, maxDist = 0;
     
     for(int i = 0; i < univSet.size(); i++) {
-        m = max(maxDist, EuclideanDistance(P, univSet[i]));
+        m = max(maxDist, METRIC(P, univSet[i]));
         if(m > maxDist) {
             result.first = univSet[i];
             maxDist = m;
@@ -203,15 +203,4 @@ void computeBallVolumesAndSaveToFile(FILE* &fptr, BallTreeNode* &root) {
     computeBallVolumesAndSaveToFile(fptr, root->right);
 }
 
-
-
-// vector<vector<double>> computeCovarianceMatrix(vector<Point*> coordinateSet, const Point* mean) {
-
-// }
-
-// /* Returns the standard deviation of the given set of points. */
-// double computeStandardDeviation(vector<Point*> coordinateSet, const Point* mean) {
-
-
-// }
 #endif
