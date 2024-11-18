@@ -41,10 +41,15 @@ def create10DSetWith10000Samples():
     x,y = make_blobs(n_samples=10000, centers=7, n_features=10)
     save_to_csv(x,y,'10D_Blobs.csv')
 
+# create 10D datasets with 10000 sample points
+def create20DSetWith200000Samples():
+    x,y = make_blobs(n_samples=200000, centers=15, n_features=25)
+    save_to_csv(x,y,'25D_Blobs.csv')
 
-create2DSetsWith100Samples()
-create3DSetsWith500Samples()
-create5DSetsWith3000Samples()
-create10DSetWith10000Samples()
+# create2DSetsWith100Samples()
+# create3DSetsWith500Samples()
+# create5DSetsWith3000Samples()
+# create10DSetWith10000Samples()
+create20DSetWith200000Samples()
 
 print('Datasets have been generated successfully')

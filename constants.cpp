@@ -4,8 +4,8 @@
 /* METRIC refers to the mathematical parameter on which all distances are computed. Comment out the one not in use*/
 
 #define DIMENSION 10
-#define LEAF_POINT_COUNT_THRESHOLD 5
 #define DATASET_IN_USE BLOBS_10D
+#define LEAF_POINT_COUNT_THRESHOLD 5
 #define METRIC EuclideanDistance
 // #define METRIC ManhattanDistance
 
@@ -16,6 +16,7 @@
 #define SWISS_ROLL_3D "Datasets/csv/3D_Swiss_Roll.csv"
 #define BLOBS_5D "Datasets/csv/5D_Blobs.csv"
 #define BLOBS_10D "Datasets/csv/10D_Blobs.csv"
+#define BLOBS_25D "Datasets/csv/25D_Blobs.csv"
 #define LATIN_CENTER_DATASET "Datasets/csv/latin_center_data.csv"
 #define HIGHLEYMAN_DATASET "Datasets/csv/highleyman_data.csv"
 #define LITHUANIAN DATASET "Datasets/csv/lithuanian_data.csv"

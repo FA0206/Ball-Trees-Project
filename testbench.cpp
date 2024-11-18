@@ -3,6 +3,7 @@
 #include "lib/MedianSplitConstruction.cpp"
 #include "lib/rangequeries.cpp"
 #include "lib/KNN.cpp"
+#include "naiveKNN.cpp"
 #include <chrono>
 using namespace std;
 
@@ -121,7 +122,7 @@ void codeRunner() {
     cin >> choice;
     if(tolower(choice) == 'n') {
         cout << "--------------------------------------------------------" << endl;
-        goto knn_search;
+        goto naive_knn;
     }
     
     while(true) {
@@ -136,13 +137,15 @@ void codeRunner() {
         // input query range
         cout << "Enter Range or 0 to exit : " ;
         cin >> r;
-        if(r == 0) {
+        if(r <= 0) {
             break;
         }
 
         // find the range query neighbors
         int pointsVisited = 0;
+        auto range_start = chrono::high_resolution_clock::now();
         rangeNeighbors = findrangeNeighbors(tree->root, query, r, pointsVisited);
+        auto range_end = chrono::high_resolution_clock::now();
 
         // print the query results
         cout << "\n\033[32:40mQuery Results : \033[0m" << endl;
@@ -158,9 +161,12 @@ void codeRunner() {
         }
         cout << "\n\033[32:40m--> Query Successful.\033[0m" << endl;
 
+        chrono::duration<double> elapsed = range_end - range_start;
+
         // display metrics
         cout << "\033[34:40m    --> Total Points Traversed = " << pointsVisited << "." << endl;
-        cout << "    --> Relevent Points Found = " << rangeNeighbors.size() << ".\033[0m" << endl;
+        cout << "    --> Relevent Points Found = " << rangeNeighbors.size() << "." << endl;
+        cout << "    --> Query Time = " << elapsed.count() << " seconds.\033[0m" << endl;
 
         cout << "\n\033[32:40m--> Continue Range Querying? (Y/N) : \033[0m";
         cin >> choice;
@@ -176,12 +182,76 @@ void codeRunner() {
 
 
     /*****************************************************************/
+naive_knn:
+    /* Naive KNN Search */
+    query = new Point();
+    int neighborCount;
+    cout << "\n\033[32:40m--> Start Naive KNN Querying? (Y/N) : \033[0m";
+    cin >> choice;
+    if(tolower(choice) == 'n') {
+        cout << "--------------------------------------------------------" << endl;
+        goto knn_search;
+    }
+
+    while(true) {
+        // input query coordinates
+        cout << "Enter query coordinates as space separated values (DIMENSION = " << DIMENSION << ") : ";
+        double c;
+        for(int i = 0; i < DIMENSION; i++) {
+            cin >> c;
+            query->coordinate[i] = c;
+        }
+
+        // input neighbor count
+        cout << "Enter No of Neighbours, -1 to exit : " ;
+        cin >> neighborCount;
+        if(r <= -1) {
+            break;
+        }
+
+        // query knn
+        int pointsVisited = tree->root->ball->containedPoints.size();
+        auto nknn_time = chrono::high_resolution_clock::now();
+        vector<pair<double, Point*>> results = knn_naive(tree->root, query, neighborCount);
+        auto nknn_end = chrono::high_resolution_clock::now();
+
+
+        for(int i = 0; i < neighborCount; i++) {
+            cout << "(";
+            for(int j = 0; j < DIMENSION; j++) {
+                cout << results[i].second->coordinate[j] << ",";
+            }
+            cout << ")" << endl;
+        }
+
+        cout << "\n\033[32:40m--> Query Successful.\033[0m" << endl;
+        chrono::duration<double> elapsed = nknn_end - nknn_time;
+
+        // display metrics
+        cout << "\033[34:40m    --> Total Points Traversed = " << pointsVisited << "." << endl;
+        cout << "    --> Relevent Points Found = " << min(neighborCount, (int)results.size()) << "." << endl;
+        cout << "    --> Query Time = " << elapsed.count() << " seconds.\033[0m" << endl;
+
+        cout << "\n\033[32:40m--> Continue Naive KNN Querying? (Y/N) : \033[0m";
+        char choice;
+        cin >> choice;
+        if(tolower(choice) == 'n') {
+            break;
+        }
+    }
+
+    delete query;
+    
+
+    cout << "\n\033[32:40m--> Completed Naive KNN Querying.\033[0m" << endl;
+    cout << "--------------------------------------------------------" << endl;
+
+    /*****************************************************************/
 
 
     /* KNN Search */
 knn_search:
     query = new Point();
-    int neighborCount;
     vector<Point*> knn_results;
 
     cout << "\n\033[32:40m--> Start KNN Querying? (Y/N) : \033[0m";
@@ -201,15 +271,17 @@ knn_search:
         }
 
         // input neighbor count
-        cout << "Enter No of Neighbours. -1 to exit : " ;
+        cout << "Enter No of Neighbours, -1 to exit : " ;
         cin >> neighborCount;
-        if(r == -1) {
+        if(r <= -1) {
             break;
         }
 
         // query knn
         int pointsVisited = 0;
+        auto knn_start = chrono::high_resolution_clock::now();
         knn_results = findKNearestNeighbors(tree->root, query, neighborCount, pointsVisited);
+        auto knn_end = chrono::high_resolution_clock::now();
 
         // print query results
         cout << "\n\033[32:40mQuery Results : \033[0m" << endl;
@@ -228,10 +300,13 @@ knn_search:
             cout << ")" << endl;
         }
         cout << "\n\033[32:40m--> Query Successful.\033[0m" << endl;
+        chrono::duration<double> elapsed = knn_end - knn_start;
+        
 
         // display metrics
         cout << "\033[34:40m    --> Total Points Traversed = " << pointsVisited << "." << endl;
-        cout << "    --> Relevent Points Found = " << knn_results.size() << ".\033[0m" << endl;
+        cout << "    --> Relevent Points Found = " << knn_results.size() << "." << endl;
+        cout << "    --> Query Time = " << elapsed.count() << " seconds.\033[0m" << endl;
 
         cout << "\n\033[32:40m--> Continue KNN Querying? (Y/N) : \033[0m";
         char choice;
@@ -250,8 +325,7 @@ knn_search:
     /*****************************************************************/
 misc:
     /* ANY MISCELLANEOUS PROCESSES */
-
-
+    
     /*****************************************************************/
 
 
