@@ -2,7 +2,6 @@
 #define PNT
 
 #include <bits/stdc++.h>
-// #include "util/constants.cpp"
 #include "../../constants.cpp"
 using namespace std;
 
@@ -19,7 +18,6 @@ public:
     bool operator<(const Point& other) const {
         return coordinate < other.coordinate;  // Uses lexicographical comparison
     }
-
 };
 
 #endif
