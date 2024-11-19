@@ -3,23 +3,12 @@
 #include "lib/MedianSplitConstruction.cpp"
 #include "lib/rangequeries.cpp"
 #include "lib/KNN.cpp"
-#include "naiveKNN.cpp"
+#include "lib/naiveKNN.cpp"
 #include <chrono>
 using namespace std;
 
-void deleteTree(BallTreeNode* root);
-
-void codeRunner() {
-
-    /* Dataset Initialization Process. */
-    cout << "\033[32:40m--> Initialising Dataset.\033[0m" << endl;
+inline void FileParsingProcess(const char* filename, vector<Point*>& universalDataPoints) {
     ifstream file(DATASET_IN_USE);
-
-    /*****************************************************************/
-
-
-    /* File Parsing Process. */
-    vector<Point*> universalDataPoints;
     double x, y; int t;
 
     /* Check if file is opened successfully. */
@@ -69,30 +58,22 @@ void codeRunner() {
     file.close();
     cout << "\033[32:40m--> Dataset Parsed Successfully.\033[0m" << endl;
     cout << "--------------------------------------------------------" << endl;
+}
 
-
-    /*****************************************************************/
-
-
-    /* Tree Construction Process. */
+inline void TreeConstructionProcess(BallTree* &tree, vector<Point*>& universalDataPoints) {
     auto start = chrono::high_resolution_clock::now();
-    BallTree* tree = NULL;
     tree = constructBallTreeUsingMedianSplit(tree, universalDataPoints);
     tree->setTreeDepths();
     auto end = chrono::high_resolution_clock::now();
     chrono::duration<double> elapsed = end - start;
 
-    cout << "\033[32:40m--> Construction complete.\033[0m" << endl;
+    cout << "\033[32:40m--> BallTree Construction complete.\033[0m" << endl;
     cout << "    \033[34:40m--> Construction Time (sec) = " << elapsed.count() << "." << endl;
     cout << "    --> Max Tree Depth = " << tree->maxDepth << "." << endl;
     cout << "    --> Average Tree Depth = " << tree->averageDepth << ".\033[0m" << endl;
+}
 
-
-
-    /*****************************************************************/
-
-
-    /* compute total leaf volume */
+inline void VolumeComputationProcess(BallTree* &tree) {
     FILE* fptr2 = fopen("lib/cache/volumedata.txt", "w");
     computeBallVolumesAndSaveToFile(fptr2, tree->root);
     fclose(fptr2);
@@ -106,13 +87,9 @@ void codeRunner() {
     fclose(fptr2);
     cout << "    \033[34:40m--> Total Volume of Ball Tree = " << totalVolume << ".\033[0m" << endl;
     cout << "--------------------------------------------------------" << endl;
+}
 
-
-    /*****************************************************************/
-
-
-    /* Range Queries */
-
+inline void RangeQueryProcess(BallTree* &tree) {
     Point* query = new Point();
     double r;
     char choice;
@@ -122,7 +99,7 @@ void codeRunner() {
     cin >> choice;
     if(tolower(choice) == 'n') {
         cout << "--------------------------------------------------------" << endl;
-        goto naive_knn;
+        return;
     }
     
     while(true) {
@@ -180,17 +157,18 @@ void codeRunner() {
     cout << "\n\033[32:40m--> Completed Range Query Processing.\033[0m" << endl;
     cout << "--------------------------------------------------------" << endl;
 
+}
 
-    /*****************************************************************/
-naive_knn:
-    /* Naive KNN Search */
-    query = new Point();
+inline void NaiveKNNProcess(BallTree* &tree) {
+    Point* query = new Point();
     int neighborCount;
+    char choice;
+
     cout << "\n\033[32:40m--> Start Naive KNN Querying? (Y/N) : \033[0m";
     cin >> choice;
     if(tolower(choice) == 'n') {
         cout << "--------------------------------------------------------" << endl;
-        goto knn_search;
+        return;
     }
 
     while(true) {
@@ -205,7 +183,7 @@ naive_knn:
         // input neighbor count
         cout << "Enter No of Neighbours, -1 to exit : " ;
         cin >> neighborCount;
-        if(r <= -1) {
+        if(neighborCount <= -1) {
             break;
         }
 
@@ -246,19 +224,19 @@ naive_knn:
     cout << "\n\033[32:40m--> Completed Naive KNN Querying.\033[0m" << endl;
     cout << "--------------------------------------------------------" << endl;
 
-    /*****************************************************************/
+}
 
-
-    /* KNN Search */
-knn_search:
-    query = new Point();
+inline void KNNProcess(BallTree* &tree, vector<Point*>& universalDataPoints) {
+    char choice;
+    int neighborCount;
+    Point* query = new Point();
     vector<Point*> knn_results;
 
     cout << "\n\033[32:40m--> Start KNN Querying? (Y/N) : \033[0m";
     cin >> choice;
     if(tolower(choice) == 'n') {
         cout << "--------------------------------------------------------" << endl;
-        goto misc;
+        return;
     }
 
     while(true) {
@@ -273,7 +251,7 @@ knn_search:
         // input neighbor count
         cout << "Enter No of Neighbours, -1 to exit : " ;
         cin >> neighborCount;
-        if(r <= -1) {
+        if(neighborCount <= -1) {
             break;
         }
 
@@ -320,22 +298,6 @@ knn_search:
 
     cout << "\n\033[32:40m--> Completed KNN Querying.\033[0m" << endl;
     cout << "--------------------------------------------------------" << endl;
-
-
-    /*****************************************************************/
-misc:
-    /* ANY MISCELLANEOUS PROCESSES */
-    
-    /*****************************************************************/
-
-
-    /* Free all allocated memory. */
-    deleteTree(tree->root);
-    delete tree;
-
-    for (Point* p : universalDataPoints) {
-        delete p;
-    }
 }
 
 void deleteTree(BallTreeNode* root) {
@@ -347,6 +309,59 @@ void deleteTree(BallTreeNode* root) {
 
     // Delete the current node
     delete root;
+}
+
+inline void TreeDeletionProcess(BallTree* &tree, vector<Point*>& universalDataPoints) {
+    deleteTree(tree->root);
+    delete tree;
+
+    for (Point* p : universalDataPoints) {
+        delete p;
+    }
+}
+
+void codeRunner() {
+
+    /* Dataset Initialization Process. */
+
+    cout << "\033[32:40m--> Initialising Dataset.\033[0m" << endl;
+    vector<Point*> universalDataPoints;
+    FileParsingProcess(DATASET_IN_USE, universalDataPoints);
+
+    /*****************************************************************/
+
+    /* Tree Construction Process. */
+    BallTree* tree = NULL;
+    TreeConstructionProcess(tree, universalDataPoints);
+
+    /*****************************************************************/
+
+    /* compute total leaf volume */
+    VolumeComputationProcess(tree);
+
+    /*****************************************************************/
+
+    /* Range Queries */
+    RangeQueryProcess(tree);
+    
+    /*****************************************************************/
+
+    /* Naive KNN Search */
+    NaiveKNNProcess(tree);
+    
+    /*****************************************************************/
+
+    /* KNN Search */
+    KNNProcess(tree, universalDataPoints);
+    
+    /*****************************************************************/
+
+    /* ANY MISCELLANEOUS PROCESSES */
+    
+    /*****************************************************************/
+
+    /* Free all allocated memory. */
+    TreeDeletionProcess(tree, universalDataPoints);
 }
 
 int main()
