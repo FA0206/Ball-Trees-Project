@@ -80,6 +80,31 @@ pair<Point*,double> findFarthestPoint(const vector<Point*> univSet, const Point*
     return result;
 }
 
+/* Computes volume of an n-dimensional hypersphere. */
+double computeHypersphereVolume(double radius, int n) {
+    if(n == 0) {
+        return 1.0;
+    }
+    if(n == 1) {
+        return 2.0 * radius;
+    }
+
+    return 2.0 * 3.1415 * radius*radius * computeHypersphereVolume(radius, n-2) / n;
+}
+
+/* Saves the computed volumes to a file. */
+void computeBallVolumesAndSaveToFile(FILE* &fptr, BallTreeNode* &root) {
+    if(root->left == NULL && root->right == NULL) {
+        return;
+    }
+
+    fprintf(fptr, "%lf\n", computeHypersphereVolume(root->ball->radius, DIMENSION));
+    computeBallVolumesAndSaveToFile(fptr, root->left);
+    computeBallVolumesAndSaveToFile(fptr, root->right);
+}
+
+
+/* Below functions are for implementing the PCA method. */
 
 /* Returns the set of points shifted to have the pivot as the origin. */
 vector<Point*> shiftOrigin(vector<Point*>& coordinateSet, const Point* pivot) {
@@ -90,7 +115,6 @@ vector<Point*> shiftOrigin(vector<Point*>& coordinateSet, const Point* pivot) {
     }
     return coordinateSet;
 }
-
 
 /* Returns the multiplication of two matrices. */
 vector<vector<double>> multiplyMatrices(const vector<vector<double>>& mat1, const vector<vector<double>>& mat2) {
@@ -146,7 +170,6 @@ vector<vector<double>> transposeMatrix(const vector<vector<double>>& mat) {
     return transpose;
 }
 
-
 /* Returns the matrix representation of a dataset. */
 vector<vector<double>> createMatrix(const vector<Point*>& coordinateSet) {
     vector<vector<double>> mat;
@@ -159,7 +182,6 @@ vector<vector<double>> createMatrix(const vector<Point*>& coordinateSet) {
 
     return mat;
 }
-
 
 /* Computes the covariance of a dataset in n-dimensional space. WARNING: This method may be incorrect. */
 vector<vector<double>> computeCovarianceMatrixOfNFeatures(vector<Point*> coordinateSet, const Point* mean) {
@@ -179,28 +201,6 @@ vector<vector<double>> computeCovarianceMatrixOfNFeatures(vector<Point*> coordin
     covarianceMatrix = multiplyMatrixWithScalar(covarianceMatrix, 1/DIMENSION-1);
 
     return covarianceMatrix;
-}
-
-
-double computeHypersphereVolume(double radius, int n) {
-    if(n == 0) {
-        return 1.0;
-    }
-    if(n == 1) {
-        return 2.0 * radius;
-    }
-
-    return 2.0 * 3.1415 * radius*radius * computeHypersphereVolume(radius, n-2) / n;
-}
-
-void computeBallVolumesAndSaveToFile(FILE* &fptr, BallTreeNode* &root) {
-    if(root->left == NULL && root->right == NULL) {
-        return;
-    }
-
-    fprintf(fptr, "%lf\n", computeHypersphereVolume(root->ball->radius, DIMENSION));
-    computeBallVolumesAndSaveToFile(fptr, root->left);
-    computeBallVolumesAndSaveToFile(fptr, root->right);
 }
 
 #endif

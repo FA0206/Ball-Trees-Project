@@ -84,6 +84,11 @@ BallTree* constructBallTreeUsingMedianSplit(BallTree* &ballTree, vector<Point*>&
     
     // open the cache file to store data
     FILE* fp = fopen("lib/cache/ball_center_and_radius.csv", "w");
+
+    if(fp == NULL) {
+        cout << "--> Unable to open cache file. Aborting." << endl;
+        return NULL;
+    }
     
     // place the labels
     for(int i = 0; i < DIMENSION; i++) {
@@ -105,7 +110,7 @@ BallTree* constructBallTreeUsingMedianSplit(BallTree* &ballTree, vector<Point*>&
     medianSplitAlgorithm(ballTree->root, completePointSet);
 
     // rename the file to a csv
-    rename("lib\\cache\\ball_center_and_radius.txt", "lib\\cache\\ball_center_and_radius.csv");
+    // rename("lib\\cache\\ball_center_and_radius.txt", "lib\\cache\\ball_center_and_radius.csv");
 
     return ballTree;
 }

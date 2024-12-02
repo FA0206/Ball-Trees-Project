@@ -70,11 +70,11 @@ def plot2DCircle(fname, scatterFileName):
 
 
 
-plot2DCircle('testResults.csv', "Datasets/csv/2D_Moons.csv")
+# plot2DCircle('testResults.csv', "Datasets/csv/2D_Moons.csv")
 
-'''   
+'''
 # Usage example:
-plot_3d_blobs('3D_S_Curve.csv')
+plot_3d_blobs('3D_Swiss_Roll.csv')
 
 # Usage example:
 plot2DGraph('2D_Blobs.csv')

@@ -1,66 +1,57 @@
 #include "classes/BallTree.cpp"
 #include "../util/mathematicalFunctions.cpp"
 
-// void knn_nearestleaf(BallTreeNode* &root, Point* &query, int k, priority_queue<pair<double, Point*>>& knearest);
-void knn_pruning(BallTreeNode* &root, Point* &query, int k, priority_queue<pair<double, Point*>>& knearest);
+// Modified knn_pruning function to count visited points
+void knn_pruning(BallTreeNode* &root, Point* &query, int k, priority_queue<pair<double, Point*>>& knearest, int& pointsVisited);
 
-// helping function to return the nearest neighbours
-// input: root of the tree, query point, k (no. of neighbours)
-vector<Point*> findKNearestNeighbors(BallTreeNode* &root, Point* &query, const int k) {    
+// Function to find k-nearest neighbors
+vector<Point*> findKNearestNeighbors(BallTreeNode* &root, Point* &query, const int k, int& pointsVisited) {    
     priority_queue<pair<double, Point*>> knearest;   // max heap to store nearest neighbors with distances
     Point* temp = NULL;
     knearest.emplace(DBL_MAX, temp);
 
-    // knn_nearestleaf(root, query, k, knearest);
-    knn_pruning(root, query, k, knearest);
-    // cout << "knn done" << endl;
-    vector<Point*> result;   // store the nearest neighbours (without the distance)
+    pointsVisited = 0; // Initialize the counter
+    knn_pruning(root, query, k, knearest, pointsVisited);
+
+    vector<Point*> result;   // Store the nearest neighbors (without the distance)
     while (!knearest.empty()) {
-        result.push_back(knearest.top().second);    // storing
-        knearest.pop();                             // poping 
+        result.push_back(knearest.top().second);    // Storing
+        knearest.pop();                             // Popping
     }
 
-    reverse(result.begin(), result.end());          // reversing the queue
+    reverse(result.begin(), result.end());          // Reversing the queue
     return result;
 }
 
-void knn_pruning(BallTreeNode* &root, Point* &query, int k, priority_queue<pair<double, Point*>>& knearest) {
-    double distanceTocenter = METRIC(query, root->ball->center);
-    if(!root) {return;}
+// Modified knn_pruning function
+void knn_pruning(BallTreeNode* &root, Point* &query, int k, priority_queue<pair<double, Point*>>& knearest, int& pointsVisited) {
+    if (!root) return;
 
-    // if the distance to the boundary of the ball exceeds the greatest distance in the max_queue. 
-    // then prune this subtree.
-    // note: we are assuming that the priority queue is NON_EMPTY
-    if (distanceTocenter - root->ball->radius > knearest.top().first) {return;}
+    double distanceToCenter = METRIC(query, root->ball->center);
 
-    // leaf node 
-    if (!root->left && !root->right) {     // check all the points inside    
+    // Prune subtree if the distance to the boundary of the ball exceeds the greatest distance in the max_queue
+    if (distanceToCenter - root->ball->radius > knearest.top().first) return;
+
+    // Leaf node
+    if (!root->left && !root->right) {     
         for (const auto& p : root->ball->containedPoints) {    
-            double dist = METRIC(query, p);  // calculating distance   
+            pointsVisited++; // Increment the counter for each visited point
+            double dist = METRIC(query, p);  // Calculating distance   
 
-            // if size of queue is less than k, add the element in the queue
-            if (knearest.size() < k) {knearest.emplace(dist, p);} 
-            
-            // else if queue is full && distance is smaller than the largest distance, 
-            // pop the top element and place 'dist, p' inside the queue
+            // If size of queue is less than k, add the element in the queue
+            if (knearest.size() < k) {
+                knearest.emplace(dist, p); 
+            } 
+            // Else, if queue is full and distance is smaller than the largest distance, replace the top element
             else if (dist < knearest.top().first) {
                 knearest.pop();
                 knearest.emplace(dist, p);
             }        
         }
-
         return;
     }
 
-    // internal node
-    else {
-        // recursively search the child nodes
-        knn_pruning(root->left, query, k, knearest);
-        knn_pruning(root->right, query, k, knearest);
-    }
+    // Internal node: recursively search the child nodes
+    knn_pruning(root->left, query, k, knearest, pointsVisited);
+    knn_pruning(root->right, query, k, knearest, pointsVisited);
 }
-
-
-
-
-
