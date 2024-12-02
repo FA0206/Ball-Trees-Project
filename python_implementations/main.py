@@ -7,7 +7,7 @@ from methods.median_split_ball_tree import MedianSplitBallTree
 # Define relative path to dataset
 def get_dataset_path():
     file_dir = os.path.dirname(__file__)
-    return os.path.join(file_dir, '..', '..', 'Datasets', 'csv', '2D_Moons.csv')
+    return os.path.join(file_dir, '..', 'Datasets', 'csv', '2D_Moons.csv')
 
 # Load dataset
 def load_dataset(csv_path):
