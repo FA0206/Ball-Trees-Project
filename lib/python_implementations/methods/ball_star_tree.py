@@ -19,18 +19,16 @@ class BallStarTree(BaseBallTree):
         self.data = X if y is None else np.column_stack((X, y))
 
         self.root = BallTreeNode(data=self.data)
-        print("Building the Ball* Tree...")
 
-        # Double check if self.data.shape[1] works
-        self._split_node(self.root)
+        self._pca_split_node(self.root)
 
-        # Print the total volume and average depth of the tree
+        # Print total tree statistics
+        print(f"Total number of nodes: {self.node_count}")
         print(f"Total volume of the tree: {self.volume}")
-        print("\nThe average depth of the tree is: ", self.avg_leaf_depth())
-
+        print(f"\nThe average depth of the tree is: {self.avg_leaf_depth()}")
         return self
         
-    def _split_node(self, node, count = 0):
+    def _pca_split_node(self, node, count = 0):
         """
         Recursively split the node into two children nodes. 
         The node is split along the principal component of the data points.
@@ -42,11 +40,12 @@ class BallStarTree(BaseBallTree):
             data = full_data[:, :-1]
         else:
             data = node.data
+
+        self.node_count += 1
         # Calculate center and radius for every node, including leaves
         node.center, node.radius = self._calculate_center_and_radius(data)
 
-        print("Node: \nPoints:", len(node.data))
-        print("Center and Radius: ", node.center, node.radius)
+        print(f"Node {self.node_count}: Center = {node.center}, Radius = {node.radius}, Points = {data.shape[0]}")
         # Update the total volume of the tree
         self.volume += node.calculate_volume(data.shape[1])
 
@@ -98,8 +97,8 @@ class BallStarTree(BaseBallTree):
         #     return
 
         # Recursively split child nodes
-        self._split_node(node.left, count)
-        self._split_node(node.right, count)
+        self._pca_split_node(node.left, count)
+        self._pca_split_node(node.right, count)
 
     def power_iteration(self, data):
         """

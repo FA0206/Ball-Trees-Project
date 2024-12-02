@@ -8,6 +8,7 @@ class BaseBallTree(ABC):
         self.leaf_size = leaf_size
         self.has_classification = has_classification
         self.volume = 0
+        self.node_count = 0
         self.root = None
         self.data = None  # This will store the original dataset
 
