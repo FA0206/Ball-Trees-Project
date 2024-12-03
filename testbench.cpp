@@ -14,7 +14,7 @@ inline void FileParsingProcess(const char* filename, vector<Point*>& universalDa
     /* Check if file is opened successfully. */
     if(!file.is_open()) {
         cout << "\033[31:40m--> ERROR : File Open Error!\033[0m" << endl;
-        return;
+        exit(0);
     }
 
     string line;
@@ -34,14 +34,14 @@ inline void FileParsingProcess(const char* filename, vector<Point*>& universalDa
             catch (exception e) {
                 /* Exception that arises when file contains other than double data. */
                 cout << "\033[31:40m--> ERROR : Value Parse Error.\033[0m" << endl;
-                return;
+                exit(0);
             }
         }
 
         /* if the dimension of the dataset is different than what is specified. */
         if(values.size() != DIMENSION + 1) {
             cout << "\033[31:40m--> ERROR : Inconsistent Dimension Parameter!\033[0m" << endl;
-            return;
+            exit(0);
         }
 
         /* Create new datapoint. */
@@ -300,6 +300,202 @@ inline void KNNProcess(BallTree* &tree, vector<Point*>& universalDataPoints) {
     cout << "--------------------------------------------------------" << endl;
 }
 
+inline void KNNProcessForImage(BallTree* &tree, vector<Point*>& universalDataPoints) {
+    char choice;
+    int neighborCount = NEIGHBOR_COUNT_FOR_IMAGE;
+    Point* query = new Point();
+    vector<Point*> knn_results;
+    map<int,char> char_mapping;
+
+    cout << "\n\033[32:40m--> Start Image Querying? (Y/N) : \033[0m";
+    cin >> choice;
+    if(tolower(choice) == 'n') {
+        cout << "--------------------------------------------------------" << endl;
+        return;
+    }
+
+    while(true) {
+        // input query coordinates
+        cout << "Enter query image path : " << endl;
+        
+        int sys_res = system("python ImageClassification/extract_pixels.py");
+
+        if(sys_res == 0) cout << "\n\033[32:40m--> File upload successful.\033[0m" << endl;
+        else cout << "\n\033[31:40m--> File upload error!\033[0m" << endl;
+
+
+        ifstream file("lib/cache/input_image_cache.csv");
+
+        /* Check if file is opened successfully. */
+        if(!file.is_open()) {
+            cout << "\033[31:40m--> ERROR : File Open Error!\033[0m" << endl;
+            return;
+        }
+
+        string line;
+        
+        /* Parsing the stream. */
+        while(getline(file, line)) {
+            stringstream ss(line);
+            string value;
+            vector<int> values;
+
+            /* Splitting the csv using , as delimiter. */
+            while(getline(ss, value, ',')) {
+                try {
+                    values.push_back(stoi(value));
+                }
+                catch (exception e) {
+                    /* Exception that arises when file contains other than double data. */
+                    cout << "\033[31:40m--> ERROR : Value Parse Error.\033[0m" << endl;
+                    return;
+                }
+            }
+
+            /* if the dimension of the dataset is different than what is specified. */
+            if(values.size() != DIMENSION) {
+                cout << "\033[31:40m--> ERROR : Inconsistent Dimension Parameter!\033[0m" << endl;
+                return;
+            }
+
+            /* Assign values to the datapoint. */
+            for(int i = 0; i < DIMENSION; i++) {
+                query->coordinate[i] = values[i];
+            }
+        }
+
+        file.close();
+
+        // query knn
+        int pointsVisited = 0;
+        auto knn_start = chrono::high_resolution_clock::now();
+        knn_results = findKNearestNeighbors(tree->root, query, neighborCount, pointsVisited);
+        auto knn_end = chrono::high_resolution_clock::now();
+
+        unordered_map<int, int> freq;
+
+        for(auto point : knn_results) {
+            freq[point->coordinate[DIMENSION]]++;
+        }
+
+        int max_count = 0, res = -1;
+        for (auto i : freq) {
+            if (max_count < i.second) {
+                res = i.first;
+                max_count = i.second;
+            }
+        }
+
+
+        // print query results
+        cout << "\n\033[32:40mQuery Results : \033[0m" << endl;
+        
+        cout << "The number is : " << res << endl;
+        cout << "\n\033[32:40m--> Query Successful.\033[0m" << endl;
+        chrono::duration<double> elapsed = knn_end - knn_start;
+        
+
+        // display metrics
+        cout << "\033[34:40m    --> Total Points Traversed = " << pointsVisited << "." << endl;
+        cout << "    --> Relevent Points Found = " << knn_results.size() << "." << endl;
+        cout << "    --> Query Time = " << elapsed.count() << " seconds.\033[0m" << endl;
+
+        cout << "\n\033[32:40m--> Continue Image Querying? (Y/N) : \033[0m";
+        char choice;
+        cin >> choice;
+        if(tolower(choice) == 'n') {
+            break;
+        }
+    }
+
+    delete query;
+
+    cout << "\n\033[32:40m--> Completed Image Querying.\033[0m" << endl;
+    cout << "--------------------------------------------------------" << endl;
+}
+
+inline void KNNAnalysisForImage(BallTree* &tree, vector<Point*>& universalDataPoints) {
+    int neighborCount = NEIGHBOR_COUNT_FOR_IMAGE;
+    vector<Point*> knn_results;
+    int positives = 0, negatives = 0;
+    int choice;
+    cout << "\n\033[32:40m--> Start Image Querying? (Y/N) : \033[0m";
+    cin >> choice;
+    if(tolower(choice) == 'n') {
+        cout << "--------------------------------------------------------" << endl;
+        return;
+    }
+
+    cout << "\n\033[32:40m--> Starting Image Query Analysis.\033[0m" << endl;
+
+    ifstream testfile(MINITEST_IMAGE);
+    string str_point;
+    getline(testfile, str_point); // skip label
+
+    while(getline(testfile, str_point)) {
+
+        /* Parsing the stream. */
+        stringstream ss(str_point);
+        string value;
+        vector<double> values;
+
+        /* Splitting the csv using , as delimiter. */
+        while(getline(ss, value, ',')) {
+            try {
+                values.push_back(stoi(value));
+            }
+            catch (exception e) {
+                /* Exception that arises when file contains other than double data. */
+                cout << "\033[31:40m--> ERROR : Value Parse Error.\033[0m" << endl;
+                return;
+            }
+        }
+
+        /* if the dimension of the dataset is different than what is specified. */
+        if(values.size() != DIMENSION + 1) { // includes expected label
+            cout << "\033[31:40m--> ERROR : Inconsistent Dimension Parameter!\033[0m" << endl;
+            return;
+        }
+
+        /* Create new datapoint. */
+        Point* testPoint = new Point();
+
+        /* Assign values to the datapoint. */
+        for(int i = 0; i <= DIMENSION; i++) {
+            testPoint->coordinate[i] = values[i];
+        }
+
+        // query knn
+        int pointsVisited = 0;
+        knn_results = findKNearestNeighbors(tree->root, testPoint, neighborCount, pointsVisited);
+
+        unordered_map<int, int> freq;
+
+        for(auto point : knn_results) {
+            freq[point->coordinate[DIMENSION]]++;
+        }
+
+        int max_count = 0, result = -1;
+        for (auto i : freq) {
+            if (max_count < i.second) {
+                result = i.first;
+                max_count = i.second;
+            }
+        }
+
+        if(result == testPoint->coordinate[DIMENSION]) {
+            positives++;
+        }
+        else {
+            negatives++;
+        }
+
+        delete testPoint;
+    }
+
+    cout << "\033[34:40m    --> Model Accuracy = " << (float)positives / (float)(positives + negatives) * 100.0f << "%.\033[0m" << endl;
+}
+
 void deleteTree(BallTreeNode* root) {
     if (!root) return;
 
@@ -336,28 +532,32 @@ void codeRunner() {
 
     /*****************************************************************/
 
-    /* compute total leaf volume */
-    VolumeComputationProcess(tree);
+    /* compute total leaf volume. Disable if images are being used. */
+    // VolumeComputationProcess(tree);
 
     /*****************************************************************/
 
-    /* Range Queries */
-    RangeQueryProcess(tree);
+    /* Range Queries. Disable if images are being used. */
+    // RangeQueryProcess(tree);
     
     /*****************************************************************/
 
-    /* Naive KNN Search */
-    NaiveKNNProcess(tree);
+    /* Naive KNN Search. Disable if images are being used. */
+    // NaiveKNNProcess(tree);
     
     /*****************************************************************/
 
-    /* KNN Search */
-    KNNProcess(tree, universalDataPoints);
+    /* KNN Search. Disable if images are in use. */
+    // KNNProcess(tree, universalDataPoints);
     
     /*****************************************************************/
 
-    /* ANY MISCELLANEOUS PROCESSES */
-    
+    /* Image Classification, disable if images are not used. */
+    KNNProcessForImage(tree, universalDataPoints);
+
+    /* Image Classification Analysis, disable if images are not used. */
+    KNNAnalysisForImage(tree, universalDataPoints);
+
     /*****************************************************************/
 
     /* Free all allocated memory. */
