@@ -26,6 +26,7 @@ class BaseBallTree(ABC):
         # Priority queue to store the k-nearest neighbors (using max-heap to track the furthest neighbor in the list)
         # Set the knn_heap with one element with infinite distance
         knn_heap = [(-float('inf'), None)]
+        stats = {'points_being_searched': 0, 'points_being_skipped': 0} 
         
         # Recursive function to perform search and backtracking
         def search_node(node):
@@ -42,6 +43,7 @@ class BaseBallTree(ABC):
             if (node.left is None and node.right is None):
                 # print("FOUND A LEAF")
                 if ((len(knn_heap) < k) or distance_to_center - node.radius < -knn_heap[0][0]):
+                    stats['points_being_searched'] += len(node.data)
                     # print("Distance to center - radius and max element of the heap: ", distance_to_center - node.radius, -knn_heap[0][0])
                     # print("and the heap is not full or the distance to surface from query is lesser than the farthest neighbor in heap")
                     for point in node.data:
@@ -64,6 +66,7 @@ class BaseBallTree(ABC):
                     # print("Heap length: ", len(knn_heap))
                 else:
                     print("Skipping the leaf of size ", len(node.data))
+                    stats['points_being_skipped'] += len(node.data)
                 return
             else:
                 pass
@@ -82,34 +85,37 @@ class BaseBallTree(ABC):
                     search_node(node.left)
             else:
                 print("Skipping the node of size ", len(node.data))
+                stats['points_being_skipped'] += len(node.data)
 
         # Start the search from the root node
+        print("Starting the KNN query...")
         search_node(self.root)
+        print("KNN query completed.")
 
         # Return sorted list of nearest neighbors by distance
-        return knn_heap
+        return knn_heap, stats['points_being_searched'], stats['points_being_skipped']
 
     def range_query(self, query_point, range):
-        """
-        Query the Ball* Tree to find all points within a given range of a query point.
-        Performs backtracking to explore other subtrees if there's a chance of finding points within the range.
-        """
         points_in_range = []
+        stats = {'points_being_searched': 0, 'points_being_skipped': 0} 
+
         def search_node(node):
             if node is None:
                 return
             distance_to_center = np.linalg.norm(query_point - node.center)
 
-            if (distance_to_center - node.radius > range):
-                if (node.left is None and node.right is None):
+            if distance_to_center - node.radius > range:
+                stats['points_being_skipped'] += len(node.data)
+                if node.left is None and node.right is None:
                     print("Skipping the leaf of size ", len(node.data))
                 else:
                     print("Skipping the node of size ", len(node.data))
                 return
-            
-            if (node.left is None and node.right is None):
+
+            if node.left is None and node.right is None:
+                stats['points_being_searched'] += len(node.data)
                 for point in node.data:
-                    if (not self.has_classification):
+                    if not self.has_classification:
                         dist = np.linalg.norm(query_point - point)
                     else:
                         dist = np.linalg.norm(query_point - point[:-1])
@@ -118,7 +124,7 @@ class BaseBallTree(ABC):
                         points_in_range.append(point)
                 return
 
-            if (np.linalg.norm(query_point - node.left.center) <= np.linalg.norm(query_point - node.right.center)):
+            if np.linalg.norm(query_point - node.left.center) <= np.linalg.norm(query_point - node.right.center):
                 search_node(node.left)
                 search_node(node.right)
             else:
@@ -129,25 +135,18 @@ class BaseBallTree(ABC):
         search_node(self.root)
         print("Range query completed.")
 
-        return points_in_range
+        return points_in_range, stats['points_being_searched'], stats['points_being_skipped']
 
-    def avg_leaf_depth(self):
-        """
-        Calculate the average depth of the leaves in the Ball* Tree.
-        """
-        sum_depth = 0
-        num_leaves = 0
+    # Helper function to calculate tree depth metrics
+    def calculate_tree_depth(tree):
+        depths = []
 
-        # Perform a DFS traversal to calculate the sum of depths and number of leaves
-        stack = [(self.root, 0)]
-        while stack:
-            node, depth = stack.pop()
+        def traverse(node, depth):
             if node.left is None and node.right is None:
-                sum_depth += depth
-                num_leaves += 1
-            if node.left is not None:
-                stack.append((node.left, depth + 1))
-            if node.right is not None:
-                stack.append((node.right, depth + 1))
+                depths.append(depth)
+            else:
+                traverse(node.left, depth + 1)
+                traverse(node.right, depth + 1)
 
-        return sum_depth / num_leaves
+        traverse(tree.root, 1)
+        return np.mean(depths), max(depths)

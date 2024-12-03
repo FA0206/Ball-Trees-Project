@@ -30,7 +30,8 @@ class MedianSplitBallTree(BaseBallTree):
         # Print total tree statistics
         print(f"Total number of nodes: {self.node_count}")
         print(f"Total volume of the tree: {self.volume}")
-        print(f"\nThe average depth of the tree is: {self.avg_leaf_depth()}")
+        avg_depth, max_depth = self.calculate_tree_depth()
+        print(f"\nThe average depth and max depth of the tree is: {avg_depth} and {max_depth}")
         return self
 
     def _median_split(self, node):

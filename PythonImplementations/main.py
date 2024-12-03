@@ -31,16 +31,21 @@ def build_tree(tree_type, data, **kwargs):
 def perform_queries(tree, query_point, k, radius):
     print(f"\n{'='*50}")
     print(f"🔍 Querying the {type(tree).__name__}...")
-    
+
     # KNN Query
-    nearest_neighbors = tree.knn_query(query_point, k)
+    nearest_neighbors, knn_points_searched, knn_points_skipped = tree.knn_query(query_point, k)
     print(f"\nThe {k} nearest neighbors to {query_point} are:")
     print(f"{'='*50}")
     for i, neighbor in enumerate(nearest_neighbors):
-        print(f"{i+1}. {neighbor[1]} (Distance: {neighbor[0]:.2f})")
+        print(f"{i+1}. {neighbor[1]} (Distance: {-neighbor[0]:.2f})")  # Negate distance because it's stored as negative in the heap
+    print(f"\nKNN query stats:")
+    print(f"  Total Points searched: {knn_points_searched}")
+    print(f"  Total Points skipped: {knn_points_skipped}\n")
+    print(f"{'='*50}\n")
+    print(f"{'='*50}")
     
     # Range Query
-    range_query_points = tree.range_query(query_point, radius)
+    range_query_points, range_points_searched, range_points_skipped = tree.range_query(query_point, radius)
     print(f"\nThe points within a radius of {radius} from {query_point} are:")
     print(f"{'='*50}")
     if range_query_points:
@@ -48,9 +53,17 @@ def perform_queries(tree, query_point, k, radius):
             print(f"{i+1}. {point}")
     else:
         print(f"No points found within the radius of {radius}.")
+    print(f"\nRange query stats:")
+    print(f"  Total Points searched: {range_points_searched}")
+    print(f"  Total Points skipped: {range_points_skipped}\n")
     
     print(f"{'='*50}")
-    return [point[1] for point in nearest_neighbors], range_query_points
+    return {
+        "nearest_neighbors": [point[1] for point in nearest_neighbors],
+        "range_query_points": range_query_points,
+        "knn_stats": {"searched": knn_points_searched, "skipped": knn_points_skipped},
+        "range_stats": {"searched": range_points_searched, "skipped": range_points_skipped},
+    }
 
 # Main function to handle the workflow
 def main():
@@ -80,10 +93,10 @@ def main():
     )
 
     # Perform queries on the Median Split Ball Tree
-    median_knn_points, median_range_points = perform_queries(median_tree, query_point, k, radius)
+    median_query_info = perform_queries(median_tree, query_point, k, radius)
 
     # Perform queries on the Ball* Tree
-    ball_star_knn_points, ball_star_range_points = perform_queries(ball_star_tree, query_point, k, radius)
+    ball_star_query_info = perform_queries(ball_star_tree, query_point, k, radius)
 
     # Plot both trees side by side
     print("\n🎨 Visualizing both trees side by side...")
@@ -92,14 +105,13 @@ def main():
         median_tree,
         ball_star_tree,
         query_point=query_point,
-        knn_queried_points_1=median_knn_points,
-        range_queried_points_1=median_range_points,
-        knn_queried_points_2=ball_star_knn_points,
-        range_queried_points_2=ball_star_range_points,
+        knn_queried_points_1=median_query_info["nearest_neighbors"],
+        range_queried_points_1=median_query_info["range_query_points"],
+        knn_queried_points_2=ball_star_query_info["nearest_neighbors"],
+        range_queried_points_2=ball_star_query_info["range_query_points"],
         radius=radius,
     )
     
-    print(f"\n{'='*50}")
     print("✅ Workflow completed successfully!")
 
 if __name__ == "__main__":
