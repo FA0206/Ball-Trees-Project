@@ -1,3 +1,6 @@
+#ifndef mspt
+#define mspt
+
 #include <bits/stdc++.h>
 #include "classes/BallTree.cpp"
 #include "../util/mathematicalFunctions.cpp"
@@ -114,3 +117,5 @@ BallTree* constructBallTreeUsingMedianSplit(BallTree* &ballTree, vector<Point*>&
 
     return ballTree;
 }
+
+#endif
